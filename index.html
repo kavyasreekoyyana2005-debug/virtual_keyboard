@@ -46,46 +46,96 @@
 <div id="keyboard"></div>
 
 <script>
-const out=document.getElementById('out');
-const kb=document.getElementById('keyboard');
+const out = document.getElementById('out');
+const kb = document.getElementById('keyboard');
 
-const keys=[
-  'Q','W','E','R','T','Y',
-  'U','I','O','P','A','S',
-  'D','F','G','H','J','K',
-  'L','Z','X','C','V','B',
-  'N','M'
+// Keyboard layout
+const layout = [
+  ['Q','W','E','R','T','Y','U','I','O','P'],
+  ['A','S','D','F','G','H','J','K','L'],
+  ['Z','X','C','V','B','N','M']
 ];
 
-keys.forEach(k=>{
-  const b=document.createElement('button');
-  b.innerText=k;
-  b.onclick=()=>out.value+=k;
-  kb.appendChild(b);
+// Create rows
+layout.forEach(row => {
+  const rowDiv = document.createElement('div');
+  rowDiv.style.display = 'flex';
+  rowDiv.style.justifyContent = 'center';
+  rowDiv.style.gap = '10px';
+  rowDiv.style.marginBottom = '10px';
+
+  row.forEach(key => {
+    const b = document.createElement('button');
+    b.innerText = key;
+    b.style.width = '50px';
+    b.style.height = '50px';
+    b.style.fontSize = '18px';
+    b.style.border = 'none';
+    b.style.borderRadius = '10px';
+    b.style.background = '#2563eb';
+    b.style.color = 'white';
+    b.style.cursor = 'pointer';
+
+    b.onclick = () => out.value += key;
+
+    rowDiv.appendChild(b);
+  });
+
+  kb.appendChild(rowDiv);
 });
 
+// Last row
+const lastRow = document.createElement('div');
+lastRow.style.display = 'flex';
+lastRow.style.justifyContent = 'center';
+lastRow.style.gap = '10px';
+lastRow.style.marginTop = '10px';
+
 // SPACE
-const space=document.createElement('button');
-space.innerText='SPACE';
-space.style.width='120px';
-space.onclick=()=>out.value+=' ';
-kb.appendChild(space);
+const space = document.createElement('button');
+space.innerText = 'SPACE';
+space.style.width = '200px';
+space.style.height = '50px';
+space.style.fontSize = '16px';
+space.style.border = 'none';
+space.style.borderRadius = '10px';
+space.style.background = '#2563eb';
+space.style.color = 'white';
+space.style.cursor = 'pointer';
+space.onclick = () => out.value += ' ';
+lastRow.appendChild(space);
 
 // ENTER
-const enter=document.createElement('button');
-enter.innerText='ENTER';
-enter.style.width='120px';
-enter.onclick=()=>out.value+='\\n';
-kb.appendChild(enter);
+const enter = document.createElement('button');
+enter.innerText = 'ENTER';
+enter.style.width = '100px';
+enter.style.height = '50px';
+enter.style.fontSize = '16px';
+enter.style.border = 'none';
+enter.style.borderRadius = '10px';
+enter.style.background = '#2563eb';
+enter.style.color = 'white';
+enter.style.cursor = 'pointer';
+enter.onclick = () => out.value += '\\n';
+lastRow.appendChild(enter);
 
 // BACKSPACE
-const back=document.createElement('button');
-back.innerText='⌫';
-back.style.width='120px';
-back.onclick=()=>{
-  out.value=out.value.slice(0,-1);
+const back = document.createElement('button');
+back.innerText = '⌫';
+back.style.width = '80px';
+back.style.height = '50px';
+back.style.fontSize = '20px';
+back.style.border = 'none';
+back.style.borderRadius = '10px';
+back.style.background = '#dc2626';
+back.style.color = 'white';
+back.style.cursor = 'pointer';
+back.onclick = () => {
+  out.value = out.value.slice(0, -1);
 };
-kb.appendChild(back);
+lastRow.appendChild(back);
+
+kb.appendChild(lastRow);
 </script>
 
 </body>
