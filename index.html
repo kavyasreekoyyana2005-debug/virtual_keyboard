@@ -35,6 +35,22 @@
       font-size:18px;
       padding:10px;
     }
+    .camera-box{
+      position:relative;
+      width:640px;
+      margin:20px auto;
+    }
+    #video,#canvas{
+      width:640px;
+      height:480px;
+      border-radius:15px;
+      border:2px solid #38bdf8;
+    }
+    #canvas{
+      position:absolute;
+      left:0;
+      top:0;
+    }
   </style>
 </head>
 <body>
@@ -42,8 +58,15 @@
 <h1>AI Virtual Keyboard</h1>
 
 <textarea id="out"></textarea>
+  <div class="camera-box"> 
+    <video id="video" autoplay playsinline></video> 
+    <canvas id="canvas"></canvas> 
+  </div>
 
 <div id="keyboard"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js">
+  </script>
 
 <script>
 const out = document.getElementById('out');
@@ -136,6 +159,59 @@ back.onclick = () => {
 lastRow.appendChild(back);
 
 kb.appendChild(lastRow);
+  // Camera + Hand Tracking
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// Open webcam
+navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+  video.srcObject = stream;
+});
+
+// MediaPipe Hands
+const hands = new Hands({
+  locateFile: (file) =>
+    `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+});
+
+hands.setOptions({
+  maxNumHands: 1,
+  minDetectionConfidence: 0.7,
+  minTrackingConfidence: 0.7
+});
+
+// Draw finger
+hands.onResults((results) => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (results.multiHandLandmarks) {
+    for (const landmarks of results.multiHandLandmarks) {
+      const index = landmarks[8];
+
+      const x = index.x * canvas.width;
+      const y = index.y * canvas.height;
+
+      ctx.beginPath();
+      ctx.arc(x, y, 10, 0, 2 * Math.PI);
+      ctx.fillStyle = 'lime';
+      ctx.fill();
+    }
+  }
+});
+
+// Start camera
+const camera = new Camera(video, {
+  onFrame: async () => {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    await hands.send({ image: video });
+  },
+  width: 640,
+  height: 480
+});
+
+camera.start();
 </script>
 
 </body>
