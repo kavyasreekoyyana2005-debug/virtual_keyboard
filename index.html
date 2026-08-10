@@ -179,11 +179,25 @@ hands.onResults(results => {
 
     const dist = Math.hypot(ix-tx, iy-ty);
 
-    // Draw finger
-    ctx.beginPath();
-    ctx.arc(ix,iy,10,0,Math.PI*2);
-    ctx.fillStyle='lime';
-    ctx.fill();
+    // Draw index finger
+ctx.beginPath();
+ctx.arc(ix, iy, 12, 0, Math.PI * 2);
+ctx.fillStyle = '#00ff00';
+ctx.fill();
+
+// Draw thumb
+ctx.beginPath();
+ctx.arc(tx, ty, 12, 0, Math.PI * 2);
+ctx.fillStyle = '#ff0000';
+ctx.fill();
+
+// Draw line between thumb and index
+ctx.beginPath();
+ctx.moveTo(ix, iy);
+ctx.lineTo(tx, ty);
+ctx.strokeStyle = '#38bdf8';
+ctx.lineWidth = 4;
+ctx.stroke();
 
     // Map finger to keyboard
     const videoRect = video.getBoundingClientRect();
