@@ -49,12 +49,43 @@
 const out=document.getElementById('out');
 const kb=document.getElementById('keyboard');
 
-'QWERTYUIOPASDFGHJKLZXCVBNM'.split('').forEach(k=>{
+const keys=[
+  'Q','W','E','R','T','Y',
+  'U','I','O','P','A','S',
+  'D','F','G','H','J','K',
+  'L','Z','X','C','V','B',
+  'N','M'
+];
+
+keys.forEach(k=>{
   const b=document.createElement('button');
   b.innerText=k;
   b.onclick=()=>out.value+=k;
   kb.appendChild(b);
 });
+
+// SPACE
+const space=document.createElement('button');
+space.innerText='SPACE';
+space.style.width='120px';
+space.onclick=()=>out.value+=' ';
+kb.appendChild(space);
+
+// ENTER
+const enter=document.createElement('button');
+enter.innerText='ENTER';
+enter.style.width='120px';
+enter.onclick=()=>out.value+='\\n';
+kb.appendChild(enter);
+
+// BACKSPACE
+const back=document.createElement('button');
+back.innerText='⌫';
+back.style.width='120px';
+back.onclick=()=>{
+  out.value=out.value.slice(0,-1);
+};
+kb.appendChild(back);
 </script>
 
 </body>
