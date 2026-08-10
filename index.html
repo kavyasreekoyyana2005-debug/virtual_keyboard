@@ -67,19 +67,20 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js">
   </script>
+  <script>
 
-<script>
 const out = document.getElementById('out');
 const kb = document.getElementById('keyboard');
 
-// Keyboard layout
+// Create virtual keyboard
 const layout = [
   ['Q','W','E','R','T','Y','U','I','O','P'],
   ['A','S','D','F','G','H','J','K','L'],
   ['Z','X','C','V','B','N','M']
 ];
 
-// Create rows
+let keyElements = [];
+
 layout.forEach(row => {
   const rowDiv = document.createElement('div');
   rowDiv.style.display = 'flex';
@@ -90,6 +91,7 @@ layout.forEach(row => {
   row.forEach(key => {
     const b = document.createElement('button');
     b.innerText = key;
+    b.className = 'vk-key';
     b.style.width = '50px';
     b.style.height = '50px';
     b.style.fontSize = '18px';
@@ -97,122 +99,138 @@ layout.forEach(row => {
     b.style.borderRadius = '10px';
     b.style.background = '#2563eb';
     b.style.color = 'white';
-    b.style.cursor = 'pointer';
-
-    b.onclick = () => out.value += key;
 
     rowDiv.appendChild(b);
+    keyElements.push({key, el:b});
   });
 
   kb.appendChild(rowDiv);
 });
 
-// Last row
-const lastRow = document.createElement('div');
-lastRow.style.display = 'flex';
-lastRow.style.justifyContent = 'center';
-lastRow.style.gap = '10px';
-lastRow.style.marginTop = '10px';
+// Space row
+const row = document.createElement('div');
+row.style.display='flex';
+row.style.justifyContent='center';
+row.style.gap='10px';
 
-// SPACE
-const space = document.createElement('button');
-space.innerText = 'SPACE';
-space.style.width = '200px';
-space.style.height = '50px';
-space.style.fontSize = '16px';
-space.style.border = 'none';
-space.style.borderRadius = '10px';
-space.style.background = '#2563eb';
-space.style.color = 'white';
-space.style.cursor = 'pointer';
-space.onclick = () => out.value += ' ';
-lastRow.appendChild(space);
+const space=document.createElement('button');
+space.innerText='SPACE';
+space.style.width='220px';
+space.style.height='50px';
+space.style.border='none';
+space.style.borderRadius='10px';
+space.style.background='#2563eb';
+space.style.color='white';
+row.appendChild(space);
 
-// ENTER
-const enter = document.createElement('button');
-enter.innerText = 'ENTER';
-enter.style.width = '100px';
-enter.style.height = '50px';
-enter.style.fontSize = '16px';
-enter.style.border = 'none';
-enter.style.borderRadius = '10px';
-enter.style.background = '#2563eb';
-enter.style.color = 'white';
-enter.style.cursor = 'pointer';
-enter.onclick = () => out.value += '\\n';
-lastRow.appendChild(enter);
+const back=document.createElement('button');
+back.innerText='⌫';
+back.style.width='80px';
+back.style.height='50px';
+back.style.border='none';
+back.style.borderRadius='10px';
+back.style.background='#dc2626';
+back.style.color='white';
+row.appendChild(back);
 
-// BACKSPACE
-const back = document.createElement('button');
-back.innerText = '⌫';
-back.style.width = '80px';
-back.style.height = '50px';
-back.style.fontSize = '20px';
-back.style.border = 'none';
-back.style.borderRadius = '10px';
-back.style.background = '#dc2626';
-back.style.color = 'white';
-back.style.cursor = 'pointer';
-back.onclick = () => {
-  out.value = out.value.slice(0, -1);
-};
-lastRow.appendChild(back);
+kb.appendChild(row);
 
-kb.appendChild(lastRow);
-  // Camera + Hand Tracking
+keyElements.push({key:'SPACE',el:space});
+keyElements.push({key:'BACK',el:back});
+
+// Camera
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
-// Open webcam
-navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-  video.srcObject = stream;
+navigator.mediaDevices.getUserMedia({video:true}).then(stream=>{
+  video.srcObject=stream;
 });
 
-// MediaPipe Hands
+// MediaPipe
 const hands = new Hands({
-  locateFile: (file) =>
+  locateFile: file =>
     `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
 });
 
 hands.setOptions({
-  maxNumHands: 1,
-  minDetectionConfidence: 0.7,
-  minTrackingConfidence: 0.7
+  maxNumHands:1,
+  minDetectionConfidence:0.7,
+  minTrackingConfidence:0.7
 });
 
-// Draw finger
-hands.onResults((results) => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+let lastPress = 0;
+let hovered = null;
 
-  if (results.multiHandLandmarks) {
-    for (const landmarks of results.multiHandLandmarks) {
-      const index = landmarks[8];
+hands.onResults(results => {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-      const x = index.x * canvas.width;
-      const y = index.y * canvas.height;
+  hovered = null;
+  keyElements.forEach(k => k.el.style.background = k.key==='BACK' ? '#dc2626' : '#2563eb');
 
-      ctx.beginPath();
-      ctx.arc(x, y, 10, 0, 2 * Math.PI);
-      ctx.fillStyle = 'lime';
-      ctx.fill();
+  if(results.multiHandLandmarks){
+    const lm = results.multiHandLandmarks[0];
+
+    const ix = lm[8].x * canvas.width;
+    const iy = lm[8].y * canvas.height;
+
+    const tx = lm[4].x * canvas.width;
+    const ty = lm[4].y * canvas.height;
+
+    const dist = Math.hypot(ix-tx, iy-ty);
+
+    // Draw finger
+    ctx.beginPath();
+    ctx.arc(ix,iy,10,0,Math.PI*2);
+    ctx.fillStyle='lime';
+    ctx.fill();
+
+    // Map finger to keyboard
+    const videoRect = video.getBoundingClientRect();
+    const pageX = videoRect.left + (ix / canvas.width) * videoRect.width;
+    const pageY = videoRect.top + (iy / canvas.height) * videoRect.height;
+
+    keyElements.forEach(k => {
+      const r = k.el.getBoundingClientRect();
+
+      if(pageX > r.left && pageX < r.right &&
+         pageY > r.top && pageY < r.bottom){
+
+        hovered = k;
+        k.el.style.background = '#22c55e';
+      }
+    });
+
+    // Pinch to type
+    if(dist < 35 && hovered && Date.now()-lastPress > 500){
+
+      if(hovered.key === 'SPACE'){
+        out.value += ' ';
+      } else if(hovered.key === 'BACK'){
+        out.value = out.value.slice(0,-1);
+      } else {
+        out.value += hovered.key;
+      }
+
+      hovered.el.style.background = '#16a34a';
+      lastPress = Date.now();
     }
   }
 });
 
 // Start camera
-const camera = new Camera(video, {
+const camera = new Camera(video,{
   onFrame: async () => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    await hands.send({ image: video });
+    await hands.send({image:video});
   },
-  width: 640,
-  height: 480
+  width:640,
+  height:480
 });
 
 camera.start();
-</script>
+    </script>
 
 </body>
 </html>
